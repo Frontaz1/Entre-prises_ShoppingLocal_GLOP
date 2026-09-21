@@ -1,0 +1,1 @@
+# Entre-prises_ShoppingLocal_GLOP
