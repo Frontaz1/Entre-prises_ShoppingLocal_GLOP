@@ -1,0 +1,21 @@
+{
+  "_doc": "Source de verite des versions d'outils du projet. Lu par tools/setup/setup-windows.ps1 (et plus tard par la CI). Politique : version majeure figee + version minimum. Changer une version = modifier CE fichier, via une PR.",
+  "git": {
+    "min": "2.51.0",
+    "winget": "Git.Git"
+  },
+  "java": {
+    "major": 21,
+    "min": "21.0.8",
+    "winget": "EclipseAdoptium.Temurin.21.JDK"
+  },
+  "node": {
+    "major": 24,
+    "min": "24.8.0",
+    "winget": "OpenJS.NodeJS.LTS"
+  },
+  "docker": {
+    "min": "29.5.2",
+    "winget": "Docker.DockerDesktop"
+  }
+}
