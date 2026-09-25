@@ -1,0 +1,85 @@
+# CI : a chaque PR vers main (et a chaque push sur main), compile et teste
+# chaque micro-service touche. Un service = un dossier dans services/.
+name: CI
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+# Un nouveau push sur la meme PR annule le run precedent (inutile de finir un run perime).
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # 1. Liste les services a tester : ceux modifies par la PR.
+  #    Tous si la CI elle-meme change ou si on ne peut pas comparer.
+  detect:
+    name: Services a tester
+    runs-on: ubuntu-latest
+    outputs:
+      services: ${{ steps.list.outputs.services }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      - id: list
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before }}
+        run: |
+          all=$(ls -d services/*/ | xargs -n1 basename)
+          if [ -z "$BASE_SHA" ] || ! git cat-file -e "$BASE_SHA^{commit}" 2>/dev/null \
+             || git diff --name-only "$BASE_SHA" HEAD | grep -q '^\.github/workflows/'; then
+            selected="$all"
+          else
+            changed=$(git diff --name-only "$BASE_SHA" HEAD)
+            selected=$(for s in $all; do echo "$changed" | grep -q "^services/$s/" && echo "$s"; done)
+          fi
+          json=$(printf '%s\n' $selected | jq -Rnc '[inputs | select(length > 0)]')
+          echo "Services a tester : $json"
+          echo "services=$json" >> "$GITHUB_OUTPUT"
+
+  # 2. Un job par service, en parallele, sur une machine neuve.
+  build:
+    name: Build + tests (${{ matrix.service }})
+    needs: detect
+    if: needs.detect.outputs.services != '[]'
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        service: ${{ fromJSON(needs.detect.outputs.services) }}
+    defaults:
+      run:
+        working-directory: services/${{ matrix.service }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: maven
+          cache-dependency-path: services/${{ matrix.service }}/pom.xml
+      # verify = compile + lance tous les tests de src/test (Postgres lance par Testcontainers si besoin) + construit le .jar.
+      - run: ./mvnw -B verify
+
+  # 3. Un seul verdict pour toute la PR : c'est ce check-la qu'on rendra obligatoire.
+  ci-ok:
+    name: CI OK
+    needs: [detect, build]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - run: |
+          if [ "${{ needs.detect.result }}" != "success" ] \
+             || [ "${{ needs.build.result }}" = "failure" ] \
+             || [ "${{ needs.build.result }}" = "cancelled" ]; then
+            echo "Au moins un service est rouge."
+            exit 1
+          fi
+          echo "Tout est vert."
