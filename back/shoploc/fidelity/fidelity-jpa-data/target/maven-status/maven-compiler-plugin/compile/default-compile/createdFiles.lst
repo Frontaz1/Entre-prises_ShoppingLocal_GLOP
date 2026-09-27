@@ -1,0 +1,5 @@
+fr\shoploc\fidelity\jpa\mapper\FidelityJpaMapper.class
+fr\shoploc\fidelity\jpa\mapper\FidelityJpaMapperImpl.class
+fr\shoploc\fidelity\jpa\entity\FidelityAccountEntity.class
+fr\shoploc\fidelity\jpa\repository\FidelityRepository.class
+fr\shoploc\fidelity\jpa\repository\FidelityCrudRepository.class

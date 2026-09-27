@@ -1,0 +1,4 @@
+fr\shoploc\fidelity\domain\service\IFidelityRepository.class
+fr\shoploc\fidelity\domain\service\IFidelityService.class
+fr\shoploc\fidelity\domain\model\FidelityAccount.class
+fr\shoploc\fidelity\domain\service\FidelityService.class

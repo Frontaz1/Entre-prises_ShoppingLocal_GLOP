@@ -1,0 +1,4 @@
+fr\shoploc\fidelity\web\controller\FidelityController.class
+fr\shoploc\fidelity\web\mapper\FidelityWebMapper.class
+fr\shoploc\fidelity\web\payload\FidelityAccountPayload.class
+fr\shoploc\fidelity\web\mapper\FidelityWebMapperImpl.class

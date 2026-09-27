@@ -1,0 +1,13 @@
+### Créer un compte fidélité
+POST http://localhost:8082/fidelity/
+Content-Type: application/json
+
+{
+  "coinAmount": 100,
+  "moneyAmount": 12.5
+}
+
+> {% client.global.set("cardId", response.body.cardId); %}
+
+### Consulter le compte créé juste au-dessus
+GET http://localhost:8082/fidelity/{{cardId}}
